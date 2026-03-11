@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Own The Well - Reggae Riddim Player</title>
+  <link rel="stylesheet" href="./own-the-well-player.css" />
+  <style>
+    body {
+      background: linear-gradient(160deg, #0d1f00 0%, #001a0d 50%, #1a0800 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="emojis">🌿 🇯🇲 ✊</div>
+    <h1>OWN THE WELL</h1>
+    <p>Conscious Roots Reggae &bull; Original Song</p>
+  </div>
+
+  <div class="unlock" id="unlockBanner" onclick="unlockAudio()">Tap here once to enable audio, then press Play.</div>
+
+  <div class="lyrics-box" id="lbox">
+    <div id="idle">
+      <p class="idle">🎵 Press Play to feel the riddim...</p>
+      <p class="idle-sub">Lyrics scroll with the music</p>
+    </div>
+    <div id="ldisplay" style="display:none">
+      <div class="badge" id="sbadge">INTRO</div>
+      <div id="llines"></div>
+    </div>
+  </div>
+
+  <div class="eq" id="eqrow"></div>
+
+  <div class="controls">
+    <div class="play-row">
+      <div style="text-align:center">
+        <button class="btn" id="playBtn" onclick="togglePlay()">▶</button>
+        <p class="btn-label" id="plabel">Drop the riddim</p>
+      </div>
+    </div>
+
+    <div class="sliders">
+      <div class="sg">
+        <label>🥁 Tempo: <span id="bpmVal">75</span> BPM</label>
+        <input type="range" min="60" max="100" value="75" oninput="changeBPM(this.value)" />
+        <div class="sl-lbl"><span>Slow</span><span>Fast</span></div>
+      </div>
+      <div class="sg">
+        <label>🔊 Volume: <span id="volVal">-6</span> dB</label>
+        <input type="range" min="-20" max="0" value="-6" oninput="changeVol(this.value)" />
+        <div class="sl-lbl"><span>Soft</span><span>Loud</span></div>
+      </div>
+    </div>
+
+    <div class="pills">
+      <div class="pill">🎸 Bass <div class="dot" id="d0"></div></div>
+      <div class="pill">🎹 Organ <div class="dot" id="d1"></div></div>
+      <div class="pill">🥁 One Drop <div class="dot" id="d2"></div></div>
+      <div class="pill">🎵 Skank <div class="dot" id="d3"></div></div>
+    </div>
+  </div>
+
+  <div class="footer">🌿 One Love &bull; Own The Well &bull; Conscious Roots Reggae 🇯🇲</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js"></script>
+<script src="./own-the-well-player.js"></script>
+</body>
+</html>
