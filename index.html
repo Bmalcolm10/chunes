@@ -1,77 +1,896 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Own The Well - Reggae Riddim Player</title>
-  <link rel="stylesheet" href="./own-the-well-player.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reggae DJ Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background: linear-gradient(160deg, #0d1f00 0%, #001a0d 50%, #1a0800 100%);
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      color: #00ff00;
+      padding: 0;
       min-height: 100vh;
+      display: flex;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      gap: 0;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: #0a0a0a;
+      border-right: 3px solid #00ff00;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      overflow: hidden;
+    }
+
+    .header {
+      background: #000;
+      border-bottom: 3px solid #00ff00;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      color: #00ff00;
+      font-size: 24px;
+      text-shadow: 0 0 10px #00ff00;
+      margin: 0;
+    }
+
+    .time-display {
+      color: #00ff00;
+      font-size: 16px;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+    }
+
+    .banner {
+      background: #1a3a1a;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 12px 20px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+
+    .banner:hover {
+      background: #00ff00;
+      color: #000;
+      box-shadow: 0 0 20px #00ff00;
+    }
+
+    .banner.active {
+      background: #00ff00;
+      color: #000;
+      box-shadow: 0 0 20px #00ff00;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .section {
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .section-title {
+      color: #00ff00;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+
+    .control-group label {
+      display: block;
+      color: #00ff00;
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #0a0a0a;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00ff00;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ff00;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00ff00;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px #00ff00;
+    }
+
+    .value-display {
+      color: #00ff00;
+      font-size: 11px;
+      text-align: right;
+      margin-top: 4px;
+      font-weight: bold;
+    }
+
+    .transport-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      background: #000;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+      box-shadow: 0 0 20px #00ff00;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn.active {
+      background: #00ff00;
+      color: #000;
+      box-shadow: 0 0 20px #00ff00;
+    }
+
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pad {
+      aspect-ratio: 1;
+      background: #0a0a0a;
+      border: 2px solid #00ff00;
+      border-radius: 4px;
+      color: #00ff00;
+      font-weight: bold;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.1s;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+    }
+
+    .pad:hover {
+      background: #1a3a1a;
+      box-shadow: 0 0 15px #00ff00 inset;
+    }
+
+    .pad:active {
+      background: #00ff00;
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    .sequencer {
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .seq-row {
+      margin-bottom: 12px;
+    }
+
+    .seq-label {
+      color: #00ff00;
+      font-size: 11px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .seq-steps {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 3px;
+    }
+
+    .step {
+      aspect-ratio: 1;
+      background: #0a0a0a;
+      border: 1px solid #003300;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.1s;
+      font-size: 8px;
+      color: #00ff00;
+    }
+
+    .step:hover {
+      border-color: #00ff00;
+      box-shadow: 0 0 8px #00ff00 inset;
+    }
+
+    .step.active {
+      background: #00ff00;
+      border-color: #00ff00;
+      color: #000;
+      box-shadow: 0 0 15px #00ff00;
+    }
+
+    .step.current {
+      border-color: #ffff00;
+      box-shadow: 0 0 10px #ffff00 inset;
+    }
+
+    .deck {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .deck-section {
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .deck-title {
+      color: #ffff00;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .effect-btn {
+      display: inline-block;
+      background: #000;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 8px 12px;
+      margin: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+    }
+
+    .effect-btn:hover {
+      background: #1a3a1a;
+      box-shadow: 0 0 10px #00ff00;
+    }
+
+    .effect-btn:active {
+      transform: scale(0.95);
+    }
+
+    .effect-btn.active {
+      background: #00ff00;
+      color: #000;
+    }
+
+    .eq-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 60px;
+      margin: 15px 0;
+      padding: 10px;
+      background: #0a0a0a;
+      border-radius: 4px;
+      border: 1px solid #003300;
+    }
+
+    .eq-bar {
+      flex: 1;
+      background: linear-gradient(to top, #00ff00, #00aa00);
+      border-radius: 2px;
+      min-height: 2px;
+      transition: height 0.1s ease;
+    }
+
+    .status-bar {
+      background: #000;
+      border-top: 2px solid #00ff00;
+      padding: 10px 25px;
+      color: #00ff00;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hdr">
-    <div class="emojis">🌿 🇯🇲 ✊</div>
-    <h1>OWN THE WELL</h1>
-    <p>Conscious Roots Reggae &bull; Original Song</p>
-  </div>
+  <div class="container">
+    <div class="sidebar">
+      <div>
+        <h2 style="color: #00ff00; margin-bottom: 10px; font-size: 16px;">REGGAE DJ</h2>
+        <div style="font-size: 11px; color: #00ff00; margin-bottom: 15px;">Pro Studio</div>
+      </div>
 
-  <div class="unlock" id="unlockBanner" onclick="unlockAudio()">Tap here once to enable audio, then press Play.</div>
+      <div class="banner" id="unlockBanner">
+        👆 CLICK HERE TO START AUDIO
+      </div>
 
-  <div class="lyrics-box" id="lbox">
-    <div id="idle">
-      <p class="idle">🎵 Press Play to feel the riddim...</p>
-      <p class="idle-sub">Lyrics scroll with the music</p>
-    </div>
-    <div id="ldisplay" style="display:none">
-      <div class="badge" id="sbadge">INTRO</div>
-      <div id="llines"></div>
-    </div>
-  </div>
+      <div class="section">
+        <div class="section-title">Transport</div>
+        <div class="transport-controls">
+          <button class="btn" onclick="togglePlay()" id="playBtn">▶ Play</button>
+          <button class="btn" onclick="stopSequence()">⏹ Stop</button>
+        </div>
+        <button class="btn" style="width: 100%; margin-bottom: 8px;" onclick="clearAll()">🔄 Clear All</button>
+      </div>
 
-  <div class="eq" id="eqrow"></div>
+      <div class="section">
+        <div class="section-title">Master</div>
+        <div class="control-group">
+          <label>Tempo (BPM)</label>
+          <input type="range" id="bpmSlider" min="40" max="200" value="95" oninput="changeBPM(this.value)">
+          <div class="value-display"><span id="bpmVal">95</span> BPM</div>
+        </div>
+        <div class="control-group">
+          <label>Master Volume</label>
+          <input type="range" id="volSlider" min="-30" max="0" value="-8" oninput="changeVol(this.value)">
+          <div class="value-display"><span id="volVal">-8</span> dB</div>
+        </div>
+      </div>
 
-  <div class="controls">
-    <div class="play-row">
-      <div style="text-align:center">
-        <button class="btn" id="playBtn" onclick="togglePlay()">▶</button>
-        <p class="btn-label" id="plabel">Drop the riddim</p>
+      <div class="section">
+        <div class="section-title">Mixing</div>
+        <div class="control-group">
+          <label>Drums</label>
+          <input type="range" id="drumVolSlider" min="-30" max="0" value="-6" oninput="changeDrumVol(this.value)">
+          <div class="value-display"><span id="drumVolVal">-6</span> dB</div>
+        </div>
+        <div class="control-group">
+          <label>Melodic</label>
+          <input type="range" id="melVolSlider" min="-30" max="0" value="-12" oninput="changeMelVol(this.value)">
+          <div class="value-display"><span id="melVolVal">-12</span> dB</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Drum Pads (1-6)</div>
+        <div class="pad-grid" id="drumPads"></div>
       </div>
     </div>
 
-    <div class="sliders">
-      <div class="sg">
-        <label>🥁 Tempo: <span id="bpmVal">75</span> BPM</label>
-        <input type="range" min="60" max="100" value="75" oninput="changeBPM(this.value)" />
-        <div class="sl-lbl"><span>Slow</span><span>Fast</span></div>
+    <div class="main">
+      <div class="header">
+        <h1>🎵 REGGAE DJ STUDIO 🎵</h1>
+        <div class="time-display" id="timeDisplay">00:00 / 16 Steps</div>
       </div>
-      <div class="sg">
-        <label>🔊 Volume: <span id="volVal">-6</span> dB</label>
-        <input type="range" min="-20" max="0" value="-6" oninput="changeVol(this.value)" />
-        <div class="sl-lbl"><span>Soft</span><span>Loud</span></div>
-      </div>
-    </div>
 
-    <div class="pills">
-      <div class="pill">🎸 Bass <div class="dot" id="d0"></div></div>
-      <div class="pill">🎹 Organ <div class="dot" id="d1"></div></div>
-      <div class="pill">🥁 One Drop <div class="dot" id="d2"></div></div>
-      <div class="pill">🎵 Skank <div class="dot" id="d3"></div></div>
+      <div class="content">
+        <div class="eq-visualizer" id="eqVisualizer"></div>
+
+        <div class="sequencer">
+          <div class="section-title">🎛️ Drum Sequencer - 16 Steps</div>
+          <div class="seq-row">
+            <div class="seq-label">Kick</div>
+            <div class="seq-steps" id="kickSeq"></div>
+          </div>
+          <div class="seq-row">
+            <div class="seq-label">Snare</div>
+            <div class="seq-steps" id="snareSeq"></div>
+          </div>
+          <div class="seq-row">
+            <div class="seq-label">Hi-Hat</div>
+            <div class="seq-steps" id="hhatSeq"></div>
+          </div>
+          <div class="seq-row">
+            <div class="seq-label">Skank</div>
+            <div class="seq-steps" id="skankSeq"></div>
+          </div>
+        </div>
+
+        <div class="deck">
+          <div class="deck-section">
+            <div class="deck-title">🎸 Guitar Riffs</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="guitarPads"></div>
+          </div>
+          <div class="deck-section">
+            <div class="deck-title">🎹 Keyboard (Z-M keys)</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;" id="keyboardPads"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎛️ Effects & Filters</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;" id="effectsPanel"></div>
+          <div class="control-group">
+            <label>Filter Cutoff</label>
+            <input type="range" id="filterSlider" min="200" max="5000" value="5000" oninput="changeFilter(this.value)">
+            <div class="value-display"><span id="filterVal">5000</span> Hz</div>
+          </div>
+          <div class="control-group">
+            <label>Reverb Amount</label>
+            <input type="range" id="reverbSlider" min="0" max="100" value="30" oninput="changeReverb(this.value)">
+            <div class="value-display"><span id="reverbVal">30</span> %</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar" id="statusBar">
+        Click AUDIO banner first, then try: Tap pads, press 1-6 for drums, Z-M for keyboard
+      </div>
     </div>
   </div>
 
-  <div class="footer">🌿 One Love &bull; Own The Well &bull; Conscious Roots Reggae 🇯🇲</div>
-</div>
+  <script>
+    // Professional DJ Studio
+    const DRUMS = {
+      kick: { label: "KICK (1)", color: "#ff0000" },
+      snare: { label: "SNARE (2)", color: "#00ffff" },
+      hihat: { label: "HI-HAT (3)", color: "#ffff00" },
+      clap: { label: "CLAP (4)", color: "#ff00ff" },
+      tom: { label: "TOM (5)", color: "#00ff00" },
+      perc: { label: "PERC (6)", color: "#ff6600" }
+    };
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js"></script>
-<script src="./own-the-well-player.js"></script>
+    const GUITAR_RIFFS = [
+      { name: "↗ Upstroke", notes: ["D4", "F#4", "A4"] },
+      { name: "🔄 Skanky", notes: ["A3", "D4", "F#4", "D4"] },
+      { name: "🎵 Bass", notes: ["G2", "G2", "D3", "A2"] },
+      { name: "✂ Chop", notes: ["D4", "F#4"] }
+    ];
+
+    const KEYBOARD_NOTES = [
+      { note: "C4", label: "C", key: "Z" },
+      { note: "D4", label: "D", key: "X" },
+      { note: "E4", label: "E", key: "C" },
+      { note: "F4", label: "F", key: "V" },
+      { note: "G4", label: "G", key: "B" },
+      { note: "A4", label: "A", key: "N" },
+      { note: "B4", label: "B", key: "M" },
+      { note: "C5", label: "C5", key: "," }
+    ];
+
+    const EFFECTS = [
+      { name: "Reverb", id: "reverb" },
+      { name: "Delay", id: "delay" },
+      { name: "Distortion", id: "distortion" },
+      { name: "Chorus", id: "chorus" }
+    ];
+
+    // Initialize EQ visualizer
+    const eqViz = document.getElementById("eqVisualizer");
+    for (let i = 0; i < 16; i++) {
+      const bar = document.createElement("div");
+      bar.className = "eq-bar";
+      bar.id = `eq-${i}`;
+      eqViz.appendChild(bar);
+    }
+
+    // State
+    let audioReady = false;
+    let playing = false;
+    let masterVol = null;
+    let drumBus = null;
+    let melBus = null;
+    let currentStep = 0;
+    let bpm = 95;
+    let seq = null;
+    let volumeValues = { master: -8, drums: -6, melodic: -12 };
+    let effectsActive = {};
+
+    const patterns = {
+      kick: [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0].map(x => !!x),
+      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0].map(x => !!x),
+      hihat: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0].map(x => !!x),
+      skank: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0].map(x => !!x)
+    };
+
+    async function initAudio() {
+      if (audioReady) return;
+      
+      await Tone.start();
+      audioReady = true;
+      
+      masterVol = new Tone.Volume(volumeValues.master).toDestination();
+      drumBus = new Tone.Volume(volumeValues.drums).connect(masterVol);
+      melBus = new Tone.Volume(volumeValues.melodic).connect(masterVol);
+
+      // Setup keyboard input AFTER audio is ready
+      setupKeyboardInput();
+
+      document.getElementById("unlockBanner").classList.add("active");
+      document.getElementById("unlockBanner").textContent = "✅ AUDIO ENABLED - READY TO PLAY";
+      updateStatus("Audio enabled! Try keyboard or drums");
+    }
+
+    // Banner click to enable audio
+    document.getElementById("unlockBanner").addEventListener("click", initAudio);
+
+    function createDrumPads() {
+      const container = document.getElementById("drumPads");
+      Object.entries(DRUMS).forEach(([key, config]) => {
+        const pad = document.createElement("button");
+        pad.className = "pad";
+        pad.textContent = config.label;
+        pad.style.color = config.color;
+        pad.addEventListener("mousedown", () => triggerDrum(key));
+        container.appendChild(pad);
+      });
+    }
+
+    function createSequencer() {
+      Object.entries(patterns).forEach(([key, pattern]) => {
+        const container = document.getElementById(`${key}Seq`);
+        pattern.forEach((active, idx) => {
+          const step = document.createElement("div");
+          step.className = "step" + (active ? " active" : "");
+          step.dataset.index = idx;
+          step.dataset.drum = key;
+          step.addEventListener("click", () => toggleStep(key, idx, step));
+          container.appendChild(step);
+        });
+      });
+    }
+
+    function toggleStep(drum, idx, element) {
+      patterns[drum][idx] = !patterns[drum][idx];
+      element.classList.toggle("active");
+    }
+
+    function createGuitarPads() {
+      const container = document.getElementById("guitarPads");
+      GUITAR_RIFFS.forEach((riff, idx) => {
+        const pad = document.createElement("button");
+        pad.className = "effect-btn";
+        pad.textContent = riff.name;
+        pad.style.flex = "1";
+        pad.addEventListener("click", async () => {
+          if (!audioReady) await initAudio();
+          playGuitarRiff(riff.notes);
+        });
+        container.appendChild(pad);
+      });
+    }
+
+    function createKeyboardPads() {
+      const container = document.getElementById("keyboardPads");
+      KEYBOARD_NOTES.forEach(({ note, label, key }) => {
+        const pad = document.createElement("button");
+        pad.className = "effect-btn";
+        pad.textContent = `${label}`;
+        pad.dataset.note = note;
+        pad.dataset.key = key;
+        pad.addEventListener("mousedown", async () => {
+          if (!audioReady) await initAudio();
+          playKeyboardNote(note, pad);
+        });
+        pad.addEventListener("mouseup", () => pad.classList.remove("active"));
+        pad.addEventListener("mouseleave", () => pad.classList.remove("active"));
+        container.appendChild(pad);
+      });
+    }
+
+    function createEffectButtons() {
+      const container = document.getElementById("effectsPanel");
+      EFFECTS.forEach(effect => {
+        const btn = document.createElement("button");
+        btn.className = "effect-btn";
+        btn.textContent = effect.name;
+        btn.id = effect.id;
+        btn.addEventListener("click", () => toggleEffect(effect.id, btn));
+        container.appendChild(btn);
+        effectsActive[effect.id] = false;
+      });
+    }
+
+    function setupKeyboardInput() {
+      document.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+
+        // Keyboard keys
+        const keyPad = document.querySelector(`[data-key="${e.key.toUpperCase()}"]`);
+        if (keyPad) {
+          playKeyboardNote(keyPad.dataset.note, keyPad);
+          keyPad.classList.add("active");
+          return;
+        }
+
+        // Number keys for drums (1-6)
+        const drumPairs = [
+          ["1", "kick"],
+          ["2", "snare"],
+          ["3", "hihat"],
+          ["4", "clap"],
+          ["5", "tom"],
+          ["6", "perc"]
+        ];
+
+        for (let [key, drum] of drumPairs) {
+          if (e.key === key) {
+            triggerDrum(drum);
+            return;
+          }
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        const keyPad = document.querySelector(`[data-key="${e.key.toUpperCase()}"]`);
+        if (keyPad) keyPad.classList.remove("active");
+      });
+    }
+
+    async function triggerDrum(drumKey) {
+      if (!audioReady) await initAudio();
+
+      const synths = {
+        kick: () => new Tone.MembraneSynth({
+          pitchDecay: 0.08, octaves: 6,
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.2 }
+        }).connect(drumBus),
+        snare: () => new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.001, decay: 0.14, sustain: 0, release: 0.05 }
+        }).connect(drumBus),
+        hihat: () => new Tone.MetalSynth({
+          frequency: 400,
+          envelope: { attack: 0.001, decay: 0.04, release: 0.01 },
+          harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5
+        }).connect(drumBus),
+        clap: () => new Tone.NoiseSynth({
+          noise: { type: "pink" },
+          envelope: { attack: 0.003, decay: 0.18, sustain: 0, release: 0.08 }
+        }).connect(drumBus),
+        tom: () => new Tone.MembraneSynth({
+          pitchDecay: 0.03, octaves: 4,
+          envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.08 }
+        }).connect(drumBus),
+        perc: () => new Tone.MetalSynth({
+          frequency: 800, envelope: { attack: 0.001, decay: 0.06, release: 0.01 },
+          harmonicity: 4, modulationIndex: 28, resonance: 3500, octaves: 1.2
+        }).connect(drumBus)
+      };
+
+      const synth = synths[drumKey]();
+      const notes = { kick: "C1", snare: null, hihat: null, clap: null, tom: "G2", perc: null };
+
+      if (notes[drumKey]) {
+        synth.triggerAttackRelease(notes[drumKey], "8n");
+      } else {
+        synth.triggerAttackRelease("16n");
+      }
+
+      setTimeout(() => synth.dispose(), 500);
+      updateEQ();
+    }
+
+    async function playGuitarRiff(notes) {
+      if (!audioReady) await initAudio();
+
+      const guitar = new Tone.PluckSynth({
+        attackTime: 0.02, decayTime: 0.5, dampening: 0.4
+      }).connect(melBus);
+
+      let time = 0;
+      notes.forEach(note => {
+        guitar.triggerAttackRelease(note, "16n", `+${time}`);
+        time += 0.12;
+      });
+
+      setTimeout(() => guitar.dispose(), 1000);
+      updateEQ();
+    }
+
+    async function playKeyboardNote(note, element) {
+      if (!audioReady) await initAudio();
+
+      const synth = new Tone.Synth({
+        oscillator: { type: "square" },
+        envelope: { attack: 0.005, decay: 0.3, sustain: 0.1, release: 0.2 }
+      }).connect(melBus);
+
+      synth.triggerAttackRelease(note, "8n");
+      if (element) element.classList.add("active");
+      setTimeout(() => synth.dispose(), 600);
+      updateEQ();
+    }
+
+    function updateEQ() {
+      for (let i = 0; i < 16; i++) {
+        const bar = document.getElementById(`eq-${i}`);
+        const height = Math.random() * 50 + 10;
+        bar.style.height = height + "px";
+      }
+    }
+
+    function toggleEffect(effectId, btn) {
+      effectsActive[effectId] = !effectsActive[effectId];
+      btn.classList.toggle("active");
+      updateStatus(`${effectId.toUpperCase()} ${effectsActive[effectId] ? "ON" : "OFF"}`);
+    }
+
+    async function togglePlay() {
+      if (!audioReady) await initAudio();
+
+      if (playing) {
+        stopSequence();
+      } else {
+        playing = true;
+        Tone.getTransport().bpm.value = bpm;
+        currentStep = 0;
+
+        seq = new Tone.Sequence((t) => {
+          const step = currentStep % 16;
+
+          // Update UI
+          document.querySelectorAll(".step").forEach(s => s.classList.remove("current"));
+          document.querySelectorAll(`.step[data-index="${step}"]`).forEach(s => s.classList.add("current"));
+
+          // Play steps
+          if (patterns.kick[step]) triggerDrum("kick");
+          if (patterns.snare[step]) triggerDrum("snare");
+          if (patterns.hihat[step]) triggerDrum("hihat");
+          if (patterns.skank[step]) playGuitarRiff(["D4", "F#4"]);
+
+          currentStep++;
+          updateTimeDisplay();
+          updateEQ();
+        }, [...Array(16).keys()], "16n");
+
+        seq.start(0);
+        Tone.getTransport().start();
+        document.getElementById("playBtn").classList.add("active");
+        document.getElementById("playBtn").textContent = "⏸ Pause";
+        updateStatus("Playing...");
+      }
+    }
+
+    function stopSequence() {
+      playing = false;
+      Tone.getTransport().stop();
+      if (seq) seq.dispose();
+      document.getElementById("playBtn").classList.remove("active");
+      document.getElementById("playBtn").textContent = "▶ Play";
+      updateStatus("Stopped");
+      updateTimeDisplay();
+    }
+
+    function updateTimeDisplay() {
+      const seconds = (currentStep / 4).toFixed(1);
+      document.getElementById("timeDisplay").textContent = `${seconds}s / 16 Steps`;
+    }
+
+    function updateStatus(msg) {
+      document.getElementById("statusBar").textContent = msg || "Ready";
+    }
+
+    function changeBPM(val) {
+      bpm = parseInt(val);
+      document.getElementById("bpmVal").textContent = val;
+      if (playing) Tone.getTransport().bpm.value = bpm;
+      updateStatus(`Tempo: ${val} BPM`);
+    }
+
+    function changeVol(val) {
+      volumeValues.master = parseInt(val);
+      document.getElementById("volVal").textContent = val;
+      if (masterVol) masterVol.volume.value = val;
+    }
+
+    function changeDrumVol(val) {
+      volumeValues.drums = parseInt(val);
+      document.getElementById("drumVolVal").textContent = val;
+      if (drumBus) drumBus.volume.value = val;
+    }
+
+    function changeMelVol(val) {
+      volumeValues.melodic = parseInt(val);
+      document.getElementById("melVolVal").textContent = val;
+      if (melBus) melBus.volume.value = val;
+    }
+
+    function changeFilter(val) {
+      document.getElementById("filterVal").textContent = val;
+    }
+
+    function changeReverb(val) {
+      document.getElementById("reverbVal").textContent = val;
+    }
+
+    function clearAll() {
+      Object.keys(patterns).forEach(key => patterns[key].fill(false));
+      document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+      updateStatus("Patterns cleared");
+    }
+
+    // Initialize UI on load
+    document.addEventListener("DOMContentLoaded", () => {
+      createDrumPads();
+      createSequencer();
+      createGuitarPads();
+      createKeyboardPads();
+      createEffectButtons();
+    });
+  </script>
 </body>
 </html>
